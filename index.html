@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Memory Retention Study — Story</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="utils.js"></script>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Memory Retention Study</h1>
+      <div class="pill">Phase 1 · Story Reading</div>
+    </header>
+
+    <p class="notice">Please read the story below carefully. You will have limited time and cannot go back once you proceed to the questions.</p>
+    <div class="controls">
+      <span class="pill timer">⏱️ Time Remaining: <span id="tleft">—</span></span>
+      <span class="badge">Refresh/Back disabled</span>
+    </div>
+
+    <section class="story" id="story">
+    On a crisp morning in the coastal city of Al Marah, a research team unveiled a small device
+    that could predict tides with remarkable accuracy. Fishermen gathered to watch as waves
+    synchronized with the model's forecasts, raising hopes for safer voyages and better harvests.
+    In the crowd, a young student noticed a subtle delay between prediction and crest, sparking
+    a question that would reshape the team's approach.
+    </section>
+
+    <div class="controls">
+      <button class="muted" id="pause">Pause Timer</button>
+      <button class="primary" id="proceed">Proceed to Questions →</button>
+    </div>
+
+    <div class="footer">This session enforces one-way flow and prevents back navigation for methodological integrity.</div>
+  </main>
+
+  <script>
+    hardenAgainstBackNavigation();
+    requireNotCompleted();
+
+    // Story timer: e.g., 90 seconds
+    const STORY_SECONDS = 90;
+    const tleftEl = document.getElementById('tleft');
+    let cancelTimer = startCountdown(STORY_SECONDS, (s) => {
+      tleftEl.textContent = s + 's';
+    }, () => {
+      // Auto-advance when time runs out
+      markProgressed();
+      location.replace('./quiz.html');
+    });
+
+    document.getElementById('pause').addEventListener('click', () => {
+      // You may disable pause entirely in production.
+      cancelTimer();
+      document.getElementById('pause').textContent = 'Timer Paused';
+    });
+
+    document.getElementById('proceed').addEventListener('click', () => {
+      markProgressed();
+      location.replace('./quiz.html');
+    });
+  </script>
+</body>
+</html>

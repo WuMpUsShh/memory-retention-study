@@ -1,0 +1,52 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Memory Retention Study — Completed</title>
+      <link rel="stylesheet" href="styles.css" />
+      <script src="utils.js"></script>
+    </head>
+    <body>
+      <main class="container">
+        <header>
+          <h1>Thank you for participating!</h1>
+          <div class="pill">Study Completed</div>
+        </header>
+
+        <p class="notice">Your responses have been recorded locally. In a real deployment, this page would send data to a secure server.</p>
+
+        <div id="summary" class="story"></div>
+
+        <div class="controls center">
+          <button class="primary" id="close">Close Tab</button>
+          <button class="muted" id="restart">Restart (for testing)</button>
+        </div>
+      </main>
+
+      <script>
+        hardenAgainstBackNavigation();
+
+        const last = JSON.parse(localStorage.getItem('mr_last_result')||'null');
+        const el = document.getElementById('summary');
+        if (last) {
+          el.textContent = `Timestamp: ${last.ts}
+Score: ${last.score}/3
+Answers: ${JSON.stringify(last.answers)}`;
+        } else {
+          el.textContent = 'No local results found.';
+        }
+
+        document.getElementById('close').addEventListener('click', () => {
+          alert('Please close this tab/window now.');
+        });
+        document.getElementById('restart').addEventListener('click', () => {
+          localStorage.removeItem('mr_last_result');
+          localStorage.removeItem('mr_progressed');
+          localStorage.removeItem('mr_completed');
+          location.replace('./index.html');
+        });
+      </script>
+    </body>
+    </html>

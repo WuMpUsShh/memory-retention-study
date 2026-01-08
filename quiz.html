@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Memory Retention Study — Questions</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="utils.js"></script>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Comprehension Questions</h1>
+      <div class="pill">Phase 2 · One-way Navigation</div>
+    </header>
+
+    <p class="notice">Answer the questions based on the story. You cannot return to the story at this point.</p>
+    <div class="controls">
+      <span class="pill timer">⏱️ Time Remaining: <span id="tleft">—</span></span>
+    </div>
+
+    <form id="quizForm">
+      <div class="question">
+        <h3>1) What city hosted the device demonstration?</h3>
+        <label><input type="radio" name="q1" value="Al Marah" required /> Al Marah</label>
+        <label><input type="radio" name="q1" value="Al Qamar" /> Al Qamar</label>
+        <label><input type="radio" name="q1" value="Marwah" /> Marwah</label>
+      </div>
+
+      <div class="question">
+        <h3>2) Who gathered to watch the demonstration?</h3>
+        <label><input type="radio" name="q2" value="Fishermen" required /> Fishermen</label>
+        <label><input type="radio" name="q2" value="Tourists" /> Tourists</label>
+        <label><input type="radio" name="q2" value="Engineers" /> Engineers</label>
+      </div>
+
+      <div class="question">
+        <h3>3) What did the student notice?</h3>
+        <label><input type="radio" name="q3" value="A subtle delay" required /> A subtle delay</label>
+        <label><input type="radio" name="q3" value="A change in wind" /> A change in wind</label>
+        <label><input type="radio" name="q3" value="A device malfunction" /> A device malfunction</label>
+      </div>
+
+      <div class="controls">
+        <button type="submit" class="ok">Submit Answers</button>
+        <button type="button" class="danger" id="reset">Reset</button>
+      </div>
+    </form>
+
+    <p class="footer">Back/refresh is disabled for data integrity. You may close the tab after submission.</p>
+  </main>
+
+  <script>
+    hardenAgainstBackNavigation();
+    requireProgressFlag();
+    requireNotCompleted();
+
+    // Quiz timer: e.g., 120 seconds
+    const QUIZ_SECONDS = 120;
+    const tleftEl = document.getElementById('tleft');
+    startCountdown(QUIZ_SECONDS, (s) => {
+      tleftEl.textContent = s + 's';
+    }, () => {
+      // Auto-submit on timeout
+      document.getElementById('quizForm').requestSubmit();
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      alert('Reset is disabled in production.');
+    });
+
+    document.getElementById('quizForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+
+      // Simple client-side scoring
+      const correct = { q1: 'Al Marah', q2: 'Fishermen', q3: 'A subtle delay' };
+      let score = 0; Object.keys(correct).forEach(k => { if (data[k] === correct[k]) score += 1; });
+
+      // Persist anonymized results to localStorage (replace with server submission in production)
+      const payload = { ts: new Date().toISOString(), score, answers: data };
+      localStorage.setItem('mr_last_result', JSON.stringify(payload));
+
+      markCompleted();
+      location.replace('./completed.html');
+    });
+  </script>
+</body>
+</html>
