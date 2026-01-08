@@ -87,17 +87,24 @@
     });
   
 
+
 <script>
   document.getElementById('quizForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validateDemographics()) return;
 
-    const data = Object.fromEntries(new FormData(e.target).entries());
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Submitting...';
+    submitBtn.disabled = true;
 
+    // Collect data
+    const data = Object.fromEntries(new FormData(form).entries());
     const correct = { q1: 'Al Marah', q2: 'Fishermen', q3: 'A subtle delay' };
-    let score = 0;
-    Object.keys(correct).forEach(k => { if (data[k] === correct[k]) score += 1; });
+    let score = 0; Object.keys(correct).forEach(k => { if (data[k] === correct[k]) score += 1; });
 
+    // Build payload
     const payload = {
       ts: new Date().toISOString(),
       participant: { name: data.name, section: data.section, age: Number(data.age) },
@@ -106,27 +113,30 @@
       key: 'CHANGE_ME_OPTIONAL_SECRET' // optional; remove if not using
     };
 
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.textContent;
-    submitBtn.textContent = 'Submitting...';
-    submitBtn.disabled = true;
-
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbzQwb0IsYrOkSg3oCMFzsMmALtwXhoOXJmRqj9XbftprfEKf6HuMB7J-TlSA_32JS4BpA/exec', {
+      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzQwb0IsYrOkSg3oCMFzsMmALtwXhoOXJmRqj9XbftprfEKf6HuMB7J-TlSA_32JS4BpA/exec'; // must end with /exec
+
+      const res = await fetch(WEB_APP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      // const txt = await res.text(); // optional inspection
+      const txt = await res.text(); // Read script response for visibility
+      console.log('Apps Script response:', res.status, txt);
 
+      if (!res.ok || !/OK/i.test(txt)) {
+        throw new Error(`Submit failed: HTTP ${res.status} – ${txt}`);
+      }
+
+      // Success → move to completed
       markCompleted();
       location.replace('./completed.html');
+
     } catch (err) {
       console.error(err);
-      alert('Submission failed. Please try again.');
-      submitBtn.textContent = originalBtnText;
+      alert('Submission failed. Please recheck your internet or try again.');
+      submitBtn.textContent = originalText;
       submitBtn.disabled = false;
     }
   });
