@@ -85,6 +85,67 @@
       markCompleted();
       location.replace('./completed.html');
     });
-  </script>
+  
+<script>
+  // --- Keep any code above this line (timers, guards, etc.) ---
+
+  document.getElementById('quizForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!validateDemographics()) return;
+
+    // Collect answers
+    const data = Object.fromEntries(new FormData(e.target).entries());
+
+    // Score MCQs (update if you add more questions)
+    const correct = { q1:'Al Marah', q2:'Fishermen', q3:'A subtle delay' };
+    let score = 0;
+    Object.keys(correct).forEach(k => { if (data[k] === correct[k]) score += 1; });
+
+    // Build payload for Google Sheets (Apps Script)
+    const payload = {
+      ts: new Date().toISOString(),
+      participant: { name: data.name, section: data.section, age: Number(data.age) },
+      answers: { q1: data.q1, q2: data.q2, q3: data.q3 },
+      score
+    };
+
+    // Optional: simple shared secret to prevent random spam (set in Apps Script check)
+    const SHARED_KEY = "CHANGE_ME_OPTIONAL_SECRET";
+    payload.key = SHARED_KEY;
+
+    // Show submitting state (optional)
+    const submitBtn = e.target.querySelector('button[type=\"submit\"]');
+    const originalBtnText = submitBtn.textContent;
+    submitBtn.textContent = 'Submitting...';
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch('YOUR_GOOGLE_SCRIPT_URL', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        // Apps Script Web Apps return CORS-friendly responses by default.
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      // (Optional) read response text
+      const txt = await res.text();
+      console.log('Submission result:', txt);
+
+      // Mark as completed on the client and move forward
+      markCompleted();
+      location.replace('./completed.html');
+
+    } catch (err) {
+      console.error('Submission failed:', err);
+      alert('Submission failed. Please check your internet connection and try again.');
+      submitBtn.textContent = originalBtnText;
+      submitBtn.disabled = false;
+    }
+  });
+</script>
 </body>
 </html>
